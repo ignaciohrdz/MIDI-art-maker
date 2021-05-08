@@ -1,8 +1,13 @@
 import cv2
 print("Using OpenCV ", cv2.__version__)
 import numpy as np
+
 import os
+import random
+
 from mido import Message, MidiFile, MidiTrack
+
+import scales
 
 # From pyimagesearch
 # URL: https://www.pyimagesearch.com/2015/04/06/zero-parameter-automatic-canny-edge-detection-with-python-and-opencv/
@@ -17,6 +22,7 @@ def auto_canny(image, sigma=0.33):
 if __name__ == "__main__":
 
     path_images = "demo_images"
+    use_scale = scales.f_maj
 
     # Load an image
     demo_imgs = ["tux.png", "apple_logo.jpg", "win98_logo.jpg"]
@@ -52,15 +58,19 @@ if __name__ == "__main__":
     mid.tracks.append(track)
     track.append(Message("program_change", program=12))
 
-    delta = 1
+    # TODO: new fueature: randomly choose note duration?
+    delta = [1,2,3,4]
     for i in range(num_cols):
         col = canny[:,i]
         if col.sum() > 0:
             indexes = list(np.where(col>0)[0])
-            print("Writing: ", indexes)
+            written = []
             for note in indexes:
-                track.append(Message("note_on", note=note, velocity=64, time=delta))
-                # track.append(Message("note_off", note=note, velocity=64, time=delta))
+                if note in use_scale:
+                    track.append(Message("note_on", note=note, velocity=64, time=random.choices(delta, k=1)[0]))
+                    written.append(note)
+                # track.append(Message("note_off", note=note, velocity=64, time=delta)) # I don't know how this works
+            print("Written: ", indexes)
         else:
             pass
 
