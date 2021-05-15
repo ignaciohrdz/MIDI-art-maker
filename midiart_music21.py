@@ -1,12 +1,12 @@
 import cv2
+from music21.stream import Stream
 print("Using OpenCV ", cv2.__version__)
 import numpy as np
 
 import os
 import random
 
-from mido import Message, MidiFile, MidiTrack
-
+from music21 import *
 import scales
 
 # From pyimagesearch
@@ -26,7 +26,8 @@ if __name__ == "__main__":
 
     # Load an image
     demo_imgs = ["tux.png", "apple_logo.jpg", "win98_logo.jpg"]
-    img = cv2.imread(os.path.join(path_images, demo_imgs[0]))
+    img_name = demo_imgs[1]
+    img = cv2.imread(os.path.join(path_images, img_name))
     img = cv2.flip(img, 0)
 
     # cv2.imshow("Image", img)
@@ -51,31 +52,31 @@ if __name__ == "__main__":
     cv2.waitKey()
     cv2.destroyAllWindows()
 
+    cv2.imwrite(os.path.join(path_images, "processed", img_name.split(".")[0] + "_bw.jpg"), cv2.flip(canny,0))
+
     print("Generating MIDI file")
-    mid = MidiFile()
-    mid.ticks_per_beat = 4
-    track = MidiTrack()
-    mid.tracks.append(track)
-    track.append(Message("program_change", program=12))
+    s = Stream()
 
     # TODO: new fueature: randomly choose note duration?
-    delta = [1,2,3,4]
+    q_length = [1,2,3,4]
     for i in range(num_cols):
         col = canny[:,i]
         if col.sum() > 0:
             indexes = list(np.where(col>0)[0])
             written = []
-            for note in indexes:
-                if note in use_scale:
-                    track.append(Message("note_on", note=note, velocity=64, time=random.choices(delta, k=1)[0]))
+            for px_note in indexes:
+                if px_note in use_scale:
+                    n = note.Note()
+                    n.pitch.midi = px_note
+                    n.duration.quarterLength = random.choice(q_length)/4
+                    s.append(n)
                     written.append(note)
                 # track.append(Message("note_off", note=note, velocity=64, time=delta)) # I don't know how this works
             print("Written: ", indexes)
         else:
             pass
 
-    mid.save("midiart_mido.mid")
-
+    s.write('midi', 'midiart_music21.mid')
     print("Done")
 
 
