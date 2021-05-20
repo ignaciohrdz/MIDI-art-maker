@@ -1,6 +1,4 @@
 import cv2
-from music21.stream import Stream
-print("Using OpenCV ", cv2.__version__)
 import numpy as np
 
 import os
@@ -26,7 +24,7 @@ if __name__ == "__main__":
 
     # Load an image
     demo_imgs = ["tux.png", "apple_logo.jpg", "win98_logo.jpg"]
-    img_name = demo_imgs[1]
+    img_name = demo_imgs[0]
     img = cv2.imread(os.path.join(path_images, img_name))
     img = cv2.flip(img, 0)
 
@@ -55,7 +53,7 @@ if __name__ == "__main__":
     cv2.imwrite(os.path.join(path_images, "processed", img_name.split(".")[0] + "_bw.jpg"), cv2.flip(canny,0))
 
     print("Generating MIDI file")
-    s = Stream()
+    s = stream.Stream()
 
     # TODO: new fueature: randomly choose note duration?
     q_length = [1,2,3,4]
@@ -63,20 +61,34 @@ if __name__ == "__main__":
         col = canny[:,i]
         if col.sum() > 0:
             indexes = list(np.where(col>0)[0])
-            written = []
-            for px_note in indexes:
-                if px_note in use_scale:
+            indexes = [i for i in indexes if i in use_scale]  # Filtering the notes
+            total_notes = len(indexes)
+
+            # If there are enough notes, I write a chord
+            if len(indexes) > 6:
+                rand_chord = random.sample(indexes, 4)
+                rand_length = random.choice(q_length)/4
+                c = chord.Chord()
+                for c_note in rand_chord:
                     n = note.Note()
-                    n.pitch.midi = px_note
-                    n.duration.quarterLength = random.choice(q_length)/4
-                    s.append(n)
-                    written.append(note)
-                # track.append(Message("note_off", note=note, velocity=64, time=delta)) # I don't know how this works
-            print("Written: ", indexes)
+                    n.pitch.midi = c_note
+                    n.duration.quarterLength = rand_length
+                    c.add(n)
+                    indexes.remove(c_note)
+                s.append(c)
+            
+            # Adding the single notes
+            for px_note in indexes:
+                n = note.Note()
+                n.pitch.midi = px_note
+                n.duration.quarterLength = random.choice(q_length)/4
+                s.append(n)
+
+            print("Total notes: {} | Written: {}".format(total_notes, indexes))
         else:
             pass
 
-    s.write('midi', 'midiart_music21.mid')
+    s.write('midi', os.path.join('export', img_name.split(".")[0] + '_midiart_music21.mid'))
     print("Done")
 
 
