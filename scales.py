@@ -1,6 +1,7 @@
 # Scales
 import random
 
+
 def create_scale(scale):
     global NOTES
     scale_notes = []
@@ -14,7 +15,6 @@ def get_random_scale():
     scales = major_scales
     random.shuffle(scales)
     return scales[0]
-
 
 
 NOTES = ["c", "csharp", "d", "dsharp", "e", "f", "fsharp", "g", "gsharp", "a", "asharp", "b"]
@@ -36,6 +36,16 @@ b_maj = ["b", "csharp", "dsharp", "e", "fsharp", "gsharp", "asharp"]
 b_maj = create_scale(b_maj)
 
 major_scales = [c_maj, d_maj, e_maj, f_maj, g_maj, a_maj, b_maj]
+major_scales_dict = {'c_maj': c_maj,
+                     'd_maj': d_maj,
+                     'e_maj': e_maj,
+                     'f_maj': f_maj,
+                     'g_maj': g_maj,
+                     'a_maj': a_maj,
+                     'b_maj': b_maj}
+
+# TODO: Make the minor scales
+# do it here
 
 
 
